@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fancy Stop Watch</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-image: url('https://img.freepik.com/premium-vector/clock-form-lines-polygonal_41814-85.jpg?w=996');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+      color: #ecf0f1;
+    }
+
+    #container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #title {
+      font-size: 2em;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #3498db;
+      text-shadow: 2px 2px 2px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+
+    #title:hover {
+      color: #2980b9;
+    }
+
+    #stopwatch {
+      text-align: center;
+      background-color: #34495e;
+      padding: 20px;
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+      width: 80vw;
+      max-width: 400px;
+    }
+
+    #display {
+      font-size: 2em;
+      margin: 10px 0;
+      color: #ecf0f1;
+      border: 5px solid #ecf0f1;
+      border-radius: 50%;
+      padding: 20px;
+      display: inline-block;
+    }
+
+    #controls {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-around;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 0 5px;
+      cursor: pointer;
+      border: none;
+      border-radius: 5px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    button.start {
+      background-color: #2ecc71;
+      color: #ecf0f1;
+    }
+
+    button.start:hover {
+      background-color: #27ae60;
+    }
+
+    button.pause {
+      background-color: #e74c3c;
+      color: #ecf0f1;
+    }
+
+    button.pause:hover {
+      background-color: #c0392b;
+    }
+
+    button.reset {
+      background-color: #3498db;
+      color: #ecf0f1;
+    }
+
+    button.reset:hover {
+      background-color: #2980b9;
+    }
+
+    button.lap {
+      background-color: #f39c12;
+      color: #ecf0f1;
+    }
+
+    button.lap:hover {
+      background-color: #d35400;
+    }
+
+    #lapContainer {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      width: 200px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .lap-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      background-color: #2c3e50;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .lap-info div {
+      width: 30%;
+      text-align: center;
+    }
+
+    .lap-info div:hover {
+      background-color: #3498db;
+    }
+
+    .remove-button {
+      cursor: pointer;
+      background-color: #e74c3c;
+      color: #ecf0f1;
+      border: none;
+      border-radius: 5px;
+      padding: 5px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+
+    .remove-button:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+
+<div id="container">
+  <div id="title">Stop Watch</div>
+  <div id="stopwatch">
+    <h1 id="display">00:00:00</h1>
+    <div id="controls">
+      <button class="start" onclick="startStopwatch()">Start</button>
+      <button class="pause" onclick="pauseStopwatch()">Pause</button>
+      <button class="reset" onclick="resetStopwatch()">Reset</button>
+      <button class="lap" onclick="lap()">Lap</button>
+    </div>
+  </div>
+</div>
+
+<div id="lapContainer"></div>
+
+<script>
+  let startTime;
+  let elapsedTime = 0;
+  let timerInterval;
+  let laps = [];
+  let lapCounter = 1;
+
+  function startStopwatch() {
+    if (!startTime) {
+      startTime = Date.now() - elapsedTime;
+      timerInterval = setInterval(updateTime, 10);
+    }
+  }
+
+  function pauseStopwatch() {
+    clearInterval(timerInterval);
+    startTime = null;
+  }
+
+  function resetStopwatch() {
+    clearInterval(timerInterval);
+    startTime = null;
+    elapsedTime = 0;
+    updateDisplay();
+    laps = [];
+    updateLapList();
+    lapCounter = 1;
+  }
+
+  function lap() {
+    if (startTime) {
+      const lapTime = Date.now() - startTime;
+      laps.push({ lap: lapCounter++, time: formatTime(lapTime) });
+      updateLapList();
+    }
+  }
+
+  function updateTime() {
+    elapsedTime = Date.now() - startTime;
+    updateDisplay();
+  }
+
+  function updateDisplay() {
+    const formattedTime = formatTime(elapsedTime);
+    document.getElementById('display').innerText = formattedTime;
+  }
+
+  function formatTime(time) {
+    const minutes = Math.floor(time / (60 * 1000));
+    const seconds = Math.floor((time % (60 * 1000)) / 1000);
+    const milliseconds = Math.floor((time % 1000) / 10);
+
+    return (
+      String(minutes).padStart(2, '0') +
+      ':' +
+      String(seconds).padStart(2, '0') +
+      ':' +
+      String(milliseconds).padStart(2, '0')
+    );
+  }
+
+  function updateLapList() {
+    const lapContainer = document.getElementById('lapContainer');
+    lapContainer.innerHTML = '';
+
+    laps.forEach((lapInfo) => {
+      const lapDiv = document.createElement('div');
+      lapDiv.className = 'lap-info';
+      lapDiv.innerHTML = `
+        <div>${lapInfo.lap}</div>
+        <div>${lapInfo.time}</div>
+        <div class="remove-button" onclick="removeLap(${lapInfo.lap})">Remove</div>
+      `;
+      lapContainer.appendChild(lapDiv);
+    });
+  }
+
+  function removeLap(lapNumber) {
+    laps = laps.filter((lap) => lap.lap !== lapNumber);
+    updateLapList();
+  }
+</script>
+
+</body>
+</html>
